@@ -27,3 +27,20 @@ This folder contains personal Omarchy configuration and system settings. The
 
 - `system/etc/sysctl.d/99-freeze-recovery.conf` enables SysRq and configures automatic recovery after a soft lockup or kernel panic.
 - `system/etc/systemd/journald.conf.d/sync.conf` makes journald sync its data every 15 seconds.
+
+
+## Computer Hardware
+
+- Keyword: Ducky 3 One
+- Mouse: Logitech G703
+- Main monitor: Samsung 34" 21:9 3440 × 1440 60HZ using DisplayPort
+- Second monitor: Samsung 32" 9:16 3840 × 2160 60HZ using DisplayPort
+- Camera: Logitech Brio 500
+- Headset: Corsair Virtuoso 2021
+- Microphone: Yeti Blue
+- Mousepad: Apple MagicPad
+- GPU: 1070Ti
+- CPU: i7-7700
+- RAM: 64GB
+- HDD TOTAL: 4TB
+- UPS: 1500VA
