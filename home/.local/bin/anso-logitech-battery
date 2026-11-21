@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+"""Report the Logitech G703 battery through Solaar as one JSON object."""
+
+import json
+import re
+import shutil
+import subprocess
+import sys
+
+
+def emit(percent=None, status="unavailable"):
+    print(json.dumps({
+        "device": "Logitech G703",
+        "battery_percent": percent,
+        "status": status,
+    }))
+
+
+def main():
+    solaar = shutil.which("solaar")
+    if not solaar:
+        emit()
+        return 1
+
+    try:
+        result = subprocess.run(
+            [solaar, "show"],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+    except (OSError, subprocess.SubprocessError):
+        emit()
+        return 1
+
+    # Solaar prints each paired device as a two-space-indented numbered
+    # section, with its battery status on a later indented line.
+    headers = list(re.finditer(r"(?m)^  \d+: .+$", result.stdout))
+    for index, header in enumerate(headers):
+        section_end = headers[index + 1].start() if index + 1 < len(headers) else len(result.stdout)
+        section = result.stdout[header.start():section_end]
+        if not re.search(r"\bG703\b", section, re.IGNORECASE):
+            continue
+
+        battery = re.search(
+            r"(?im)^\s*Battery:\s*(\d{1,3})%\s*,?\s*([^\n.]*)",
+            section,
+        )
+        if battery:
+            percent = int(battery.group(1))
+            if 0 <= percent <= 100:
+                state = battery.group(2).strip().rstrip(",").lower() or "unknown"
+                emit(percent, state)
+                return 0
+
+    emit()
+    return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
