@@ -1,0 +1,11 @@
+[Unit]
+Description=Keep audio on the ultrawide monitor
+After=pipewire-pulse.service wireplumber.service
+
+[Service]
+ExecStart=%h/.local/bin/ultrawide-audio
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

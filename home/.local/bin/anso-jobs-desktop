@@ -1,0 +1,47 @@
+#!/bin/bash
+# Restore the "AnsoJobs" desktop layout (saved 2026-10-07).
+#
+#   WS1 (DP-2):  Gmail (left) | Alacritty (top-right) / Claude app (bottom-right)
+#   WS2 (DP-3):  Cursor (top) / Gmail (bottom)
+#   WS3 (DP-2):  Chrome "Advanced DNS" (left) | Firefox Dev MyFirstScan (right)
+#
+# Windows open in order on the active workspace so dwindle tiles them the same way.
+
+GMAIL_URL="https://mail.google.com/mail/u/0/#inbox"
+DNS_URL="https://ap.www.namecheap.com/"      # <- set to your "Advanced DNS" page
+SCAN_URL="https://myfirstscan.com/"
+
+CHROME="/usr/bin/google-chrome-stable"
+
+# Run a command and wait (up to 20s) until a new window appears
+launch() {
+  local before after
+  before=$(hyprctl clients -j | jq -r '.[].address' | sort)
+  hyprctl dispatch exec "$*" >/dev/null
+  for _ in $(seq 1 80); do
+    sleep 0.25
+    after=$(hyprctl clients -j | jq -r '.[].address' | sort)
+    [ -n "$(comm -13 <(echo "$before") <(echo "$after"))" ] && { sleep 0.3; return; }
+  done
+  echo "timed out waiting for: $*" >&2
+}
+
+goto() { hyprctl dispatch workspace "$1" >/dev/null; sleep 0.2; }
+
+# Workspace 1
+goto 1
+launch "$CHROME --new-window '$GMAIL_URL'"
+launch "alacritty"
+launch "$CHROME --profile-directory=Default --app-id=fmpnliohjhemenmnlpbfagaolkdacoja"
+
+# Workspace 2 (portrait monitor)
+goto 2
+launch "$HOME/Applications/cursor.AppImage"
+launch "$CHROME --new-window '$GMAIL_URL'"
+
+# Workspace 3
+goto 3
+launch "$CHROME --new-window '$DNS_URL'"
+launch "firefox-developer-edition --new-window '$SCAN_URL'"
+
+goto 1
