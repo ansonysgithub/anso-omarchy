@@ -17,11 +17,17 @@ This folder contains personal Omarchy configuration and system settings. The
 - `home/.local/bin/anso-logitech-battery` reads the G703 battery reported by Solaar and prints JSON with the percentage and battery state. It reports `null` and `unavailable` when Solaar or a usable battery reading is missing, so a bar widget can hide the indicator instead of displaying stale data.
 - Install and run Solaar with the G703 paired to a supported Logitech receiver. Poll this command at a modest interval, such as once per minute, and treat a nonzero exit code or a `null` percentage as unavailable.
 
+## Ultrawide audio
+
+- `home/.local/bin/ultrawide-audio` keeps audio on the Samsung SE790C. NVIDIA renumbers its HDMI/DP outputs when monitors change, so the script checks every 5 seconds which output carries the SE790C. When it moves, the script switches the default to it, unless the default is a non-NVIDIA device such as a headset.
+- The monitor name and the sound card address are set at the top of the script; change them if the hardware changes.
+
 ## User service
 
 - `home/.config/systemd/user/voxtype.service` runs the Voxtype push-to-talk voice-to-text daemon during the graphical session.
 - `home/.config/systemd/user/solaar.service` starts Solaar in the background during the graphical session so Logitech receiver data is available to the battery command.
 - Install Solaar with `omarchy pkg add solaar`, copy the service into `~/.config/systemd/user/`, then run `systemctl --user enable --now solaar.service`.
+- `home/.config/systemd/user/ultrawide-audio.service` runs the ultrawide audio script. Copy both files into place, then run `systemctl --user enable --now ultrawide-audio.service`.
 
 ## System settings
 

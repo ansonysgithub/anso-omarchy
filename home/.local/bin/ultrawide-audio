@@ -1,0 +1,42 @@
+#!/bin/bash
+# Keep audio on the SE790C: NVIDIA renumbers its HDMI/DP outputs when monitors
+# change, so find the monitor by name instead of trusting a fixed output.
+export LC_ALL=C
+MONITOR=SE790C
+CARD=alsa_card.pci-0000_01_00.1
+SINK=alsa_output.pci-0000_01_00.1.pro-output-
+
+find_pcm() { aplay -l 2>/dev/null | sed -n "s/^card .*\[HDA NVidia\], device \([0-9]*\):.*\[$MONITOR\]\$/\1/p" | head -1; }
+has_sink() { pactl list short sinks 2>/dev/null | cut -f2 | grep -qxF "$1"; }
+# Monitor name PipeWire cached when it created the sink
+cached_name() {
+  pactl list sinks | awk -v s="$1" '$1=="Name:"{f=($2==s)} f&&/alsa\.name = /{gsub(/"/,"",$3);print $3;exit}'
+}
+
+last=""
+while true; do
+  pcm=$(find_pcm)
+  if [[ -n $pcm && $pcm != "$last" ]] && old=$(pactl get-default-sink 2>/dev/null); then
+    want=$SINK$pcm
+    vol=$(pactl get-sink-volume "$old" 2>/dev/null | grep -o '[0-9]*%' | head -1)
+    if ! has_sink "$want" || [[ $(cached_name "$want") != "$MONITOR" ]]; then
+      # Recreate the sinks so channel counts match the monitor now attached
+      pactl set-card-profile "$CARD" off
+      sleep 1
+      pactl set-card-profile "$CARD" pro-audio
+      for _ in {1..10}; do has_sink "$want" && break; sleep 1; done
+    fi
+    if has_sink "$want"; then
+      # Leave headphones, speakers, etc. alone
+      if [[ $old == alsa_output.pci-0000_01_00.1.* && $old != "$want" ]]; then
+        [[ -n $vol ]] && pactl set-sink-volume "$want" "$vol"
+        pactl set-default-sink "$want"
+      elif [[ $old == "$want" ]]; then
+        pactl set-default-sink "$want"
+      fi
+      echo "$MONITOR is on output $pcm (default was $old)"
+      last=$pcm
+    fi
+  fi
+  sleep 5
+done
