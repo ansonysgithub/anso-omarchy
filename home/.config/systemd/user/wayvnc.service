@@ -1,0 +1,12 @@
+[Unit]
+Description=wayvnc VNC server (ZeroTier only)
+PartOf=graphical-session.target
+After=graphical-session.target zerotier-one.service
+
+[Service]
+ExecStart=/usr/bin/wayvnc --output=HDMI-A-1
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=graphical-session.target

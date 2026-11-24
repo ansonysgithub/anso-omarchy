@@ -1,0 +1,4 @@
+#!/bin/bash
+# Disabled on purpose (2026-11-03): ddcutil probing NVIDIA DP i2c buses while
+# monitors power off/hotplug preceded a hard freeze. Real binary: /usr/bin/ddcutil
+exit 1
